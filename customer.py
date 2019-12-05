@@ -47,6 +47,25 @@ def register(given_first_name, given_middle_name, given_last_name, given_birthda
 	success = True
 	return success
 
+def add_address(newCountry, newState, city, zipCode, street, aNumber, unit = None):
+	success = False
+	d = {"country":newCountry,"state":newState,"city":city,"zip":zipCode,"street":street,"num":aNumber,"unit":unit}
+	csr = cnx.cursor()
+	csr.execute("INSERT INTO Address(country,aState,city,zipCode,street,aNumber,unit) VALUES (%(country)s,%(state)s,%(city)s,%(zip)s,%(street)s,%(num)s,%(unit)s)", d)
+	cnx.commit()
+	csr.close()
+	csr = cnx.cursor()
+	csr.execute("SELECT addressID FROM Address WHERE (country=%(country)s AND aState=%(state)s AND city=%(city)s AND zipCode=%(zip)s AND street=%(street)s AND aNumber=%(num)s AND unit=%(unit)s) LIMIT 1",d)
+	for entry in csr:
+		aid = int(str(entry)[1:3])
+	csr.close()
+	csr=cnx.cursor()
+	csr.execute("INSERT INTO Customer_Address(customerID,addressID) VALUES (%(cid)s,%(aid)s)", {"cid":login_customer_id,"aid":aid})
+	cnx.commit()
+	csr.close()
+	success = True
+	return success
+
 def update_address(newCountry, newState, city, zipCode, street, aNumber, unit = None):
 	success = False
 	csr = cnx.cursor()
@@ -129,7 +148,7 @@ def logout():
 def display():
 	csr = cnx.cursor()
 	string = ""
-	csr.execute("SELECT * FROM Customer")
+	csr.execute("SELECT * FROM Customer_Address")
 	for entry in csr:
 		string += str(entry) + "\n\n"
 	string = string.strip()
@@ -454,6 +473,10 @@ def accountManagement():
 			accountManagement()
 
 	else: # update address
+		addOrUpdate = g.buttonbox("Do you want to add or update an address?","Update Address", ("Add", "Update", "Cancel"))
+		if addOrUpdate == "Cancel":
+			accountManagement()
+
 		msg = "Please give us your personal data that we totally will not sell"
 		title = "Register Account"
 		fieldValues = []
@@ -473,11 +496,23 @@ def accountManagement():
 
 		    fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
 
-		if update_address(fieldValues[0],fieldValues[1],fieldValues[2],fieldValues[3],fieldValues[4],fieldValues[5],fieldValues[6]):
-			g.msgbox("Address successfully changed.")
+		csr = cnx.cursor()
+		csr.execute("SELECT * FROM Customer_Address WHERE customerID = %(id)s", {"id":login_customer_id})
+		string = ""
+		for entry in csr:
+			string += entry
+		csr.close()
+		if string.strip() == "": #add address if no address already registered
+			if add_address(fieldValues[0],fieldValues[1],fieldValues[2],fieldValues[3],fieldValues[4],fieldValues[5],fieldValues[6]):
+				g.msgbox("Address successfully added.")
+			else:
+				g.msgbox("Unable to add address. Returning to Account Management")
 			accountManagement()
 		else:
-			g.msgbox("Unable to update address. Returning to Account Management.")
+			if update_address(fieldValues[0],fieldValues[1],fieldValues[2],fieldValues[3],fieldValues[4],fieldValues[5],fieldValues[6]):
+				g.msgbox("Address successfully updated.")
+			else:
+				g.msgbox("Unable to update address. Returning to Account Management.")
 			accountManagement()
 
 # ********************************************************************************************************************
