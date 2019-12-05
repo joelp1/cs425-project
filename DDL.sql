@@ -1,12 +1,12 @@
 CREATE TABLE Customer(
-   customerID	INT AUTO_INCREMENT PRIMARY KEY,
-   firstName	VARCHAR(20),
-   middleName	VARCHAR(20),
-   lastName		VARCHAR(20),
-   birthDate	DATE,
-   emailAddress  VARCHAR(30),
-   password       VARCHAR(25) NOT NULL,
-   tombstone      BOOLEAN
+   customerID		INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+   firstName		VARCHAR(20),
+   middleName		VARCHAR(20),
+   lastName			VARCHAR(20),
+   birthDate		DATE,
+   emailAddress  	VARCHAR(30),
+   password       	VARCHAR(25) NOT NULL,
+   tombstone      	BOOLEAN
 );
 
 CREATE TABLE Account(
@@ -244,27 +244,28 @@ CREATE TABLE Warehouse_Stock(
    FOREIGN KEY (warehouseID) REFERENCES Warehouse(warehouseID)
 );
 
-INSERT INTO Customer VALUES(NULL, NULL, NULL, NULL, 'unknown', NULL);
-INSERT INTO Customer VALUES('Carrie', 'M', 'Clarkson', '2017-04-17', 'cclarkson@gmail.com', 'ponta123');
-INSERT INTO Customer VALUES('Eddie', 'K', 'Bright', '1976-05-14', 'ebright@gmail.com', 'effect1910');
-INSERT INTO Customer VALUES('Anne', 'G', 'Jefferson', '1988-12-10', 'ajefferson@gmail.com', 'p44ck4');
-INSERT INTO Customer VALUES('Xavier', 'C', 'Coulson', '1974-06-14', 'xcoulson@gmail.com', 'tm5dqb');
-INSERT INTO Customer VALUES('Devan', 'J', 'Osborn', '1995-08-24', 'dosborn@gmail.com', '6f9u0z');
 
-INSERT INTO Account VALUES(0, 0, 0);
-INSERT INTO Account VALUES(1, 1000, 0);
-INSERT INTO Account VALUES(2, 1000, 100);
-INSERT INTO Account VALUES(3, 1000, 1000);
-INSERT INTO Account VALUES(4, 1000, 900);
-INSERT INTO Account VALUES(5, 0, 0);
+INSERT INTO Customer(firstName, middleName, lastName, birthDate, emailAddress, password, tombstone) VALUES(NULL, NULL, NULL, NULL, NULL, 'unknown', NULL);
+INSERT INTO Customer(firstName, middleName, lastName, birthDate, emailAddress, password, tombstone) VALUES('Carrie', 'M', 'Clarkson', '2017-04-17', 'cclarkson@gmail.com', 'ponta123', NULL);
+INSERT INTO Customer(firstName, middleName, lastName, birthDate, emailAddress, password, tombstone) VALUES('Eddie', 'K', 'Bright', '1976-05-14', 'ebright@gmail.com', 'effect1910', NULL);
+INSERT INTO Customer(firstName, middleName, lastName, birthDate, emailAddress, password, tombstone) VALUES('Anne', 'G', 'Jefferson', '1988-12-10', 'ajefferson@gmail.com', 'p44ck4', NULL);
+INSERT INTO Customer(firstName, middleName, lastName, birthDate, emailAddress, password, tombstone) VALUES('Xavier', 'C', 'Coulson', '1974-06-14', 'xcoulson@gmail.com', 'tm5dqb', NULL);
+INSERT INTO Customer(firstName, middleName, lastName, birthDate, emailAddress, password, tombstone) VALUES('Devan', 'J', 'Osborn', '1995-08-24', 'dosborn@gmail.com', '6f9u0z', NULL);
 
+select * from Customer;
 
-INSERT INTO Phone VALUES(4778555465, 'Home', 1);
-INSERT INTO Phone VALUES(2275191699, 'Cell', 1);
-INSERT INTO Phone VALUES(6703616928, 'Home', 2);
-INSERT INTO Phone VALUES(6124568473, 'Home', 3);
-INSERT INTO Phone VALUES(8592802741, 'Home', 4);
-INSERT INTO Phone VALUES(3816166086, 'Home', 5);
+INSERT INTO Account VALUES(2, 'cclarkson@gmail.com', 'ponta123', 1016679);
+INSERT INTO Account VALUES(3,'ebright@gmail.com', 'effect1910', 1026754);
+INSERT INTO Account VALUES(4,'ajefferson@gmail.com', 'p44ck4', 1035489);
+INSERT INTO Account VALUES(5, 'xcoulson@gmail.com', 'tm5dqb', 1089784);
+INSERT INTO Account VALUES(6, 'dosborn@gmail.com', '6f9u0z', 1023559);
+
+INSERT INTO Phone VALUES(4778555465, 'Home', 2);
+INSERT INTO Phone VALUES(2275191699, 'Cell', 3);
+INSERT INTO Phone VALUES(6703616928, 'Home', 4);
+INSERT INTO Phone VALUES(6124568473, 'Home', 4);
+INSERT INTO Phone VALUES(8592802741, 'Home', 5);
+INSERT INTO Phone VALUES(3816166086, 'Home', 6);
 
 INSERT INTO Shipper VALUES(1456786, 'USPS', 805229085);
 INSERT INTO Shipper VALUES(1243243, 'UPS', 8007425877);
@@ -300,11 +301,11 @@ INSERT INTO Address VALUES(698554, 'USA', 'IL', 'Palatine', 60067, 'Rockledge St
 INSERT INTO Address VALUES(555784, 'USA', 'FL', 'Palm Coast', 32137, 'Center St.', 391, NULL, NULL, NULL, NULL);
 INSERT INTO Address VALUES(222471, 'USA', 'IN', 'Portage', 46368, 'Academy Drive', 210, NULL, NULL, NULL, NULL);
 
-INSERT INTO Customer_Address VALUES(1, 789454);
-INSERT INTO Customer_Address VALUES(2, 457248);
-INSERT INTO Customer_Address VALUES(3, 698554);
-INSERT INTO Customer_Address VALUES(4, 555784);
-INSERT INTO Customer_Address VALUES(5, 222471);
+INSERT INTO Customer_Address VALUES(2, 789454);
+INSERT INTO Customer_Address VALUES(3, 457248);
+INSERT INTO Customer_Address VALUES(4, 698554);
+INSERT INTO Customer_Address VALUES(5, 555784);
+INSERT INTO Customer_Address VALUES(6, 222471);
 
 INSERT INTO Manufacturer VALUES(45785, 'Sony', 7732024561, 'Japan');
 INSERT INTO Manufacturer VALUES(87845, 'Apple', 5638776504, 'China');
@@ -357,13 +358,12 @@ INSERT INTO Bundle VALUES(456789, 'Laptop and Printer ');
 INSERT INTO Product_Bundle VALUES('MZDQMF17 ', 'B07211W6X2', 456789);
 INSERT INTO Product_Bundle VALUES('30S70U3A', 'B07HB4QHC3', 456789);
 
-INSERT INTO Customer_Order VALUES(2597792, 'Online', 09243418643242106562, '2019-08-19', '2019-08-20', 1, 1456786); 
-INSERT INTO Customer_Order VALUES(8749848, 'Retail', NULL, '2019-12-10', NULL, 2, NULL);
-INSERT INTO Customer_Order VALUES(1793824, 'Online', 04326698363223743408
-, '2019-04-02', '2019-04-03', 3, 1234568);
-INSERT INTO Customer_Order VALUES(2589741, 'Retail', NULL, '2019-09-10', NULL, 4, NULL);
-INSERT INTO Customer_Order VALUES(3336841, 'Retail', NULL, '2019-11-27', NULL, 4, NULL);
-INSERT INTO Customer_Order VALUES(5847951, 'Online', 04326698363223743408, '2019-07-01', '2019-07-01', 5, 1243243);
+INSERT INTO Customer_Order VALUES(2597792, 'Online', 09243418643242106562, '2019-08-19', '2019-08-20', 2, 1456786); 
+INSERT INTO Customer_Order VALUES(8749848, 'Retail', NULL, '2019-12-10', NULL, 3, NULL);
+INSERT INTO Customer_Order VALUES(1793824, 'Online', 04326698363223743408, '2019-04-02', '2019-04-03', 4, 1234568);
+INSERT INTO Customer_Order VALUES(2589741, 'Retail', NULL, '2019-09-10', NULL, 5, NULL);
+INSERT INTO Customer_Order VALUES(3336841, 'Retail', NULL, '2019-11-27', NULL, 5, NULL);
+INSERT INTO Customer_Order VALUES(5847951, 'Online', 04326698363223743408, '2019-07-01', '2019-07-01', 6, 1243243);
 
 INSERT INTO Bill VALUES(189475, 458967, 325.50, '2019-05-01');
 
