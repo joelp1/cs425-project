@@ -14,7 +14,8 @@ CREATE TABLE Account(
    maxCredit      	INT,
    balance    		INT,
    mpr              NUMERIC(2,2),
-   FOREIGN KEY (customerID) REFERENCES Customer(customerID)
+   FOREIGN KEY (customerID) REFERENCES Customer(customerID),
+   CONSTRAINT goodBalance CHECK (balance < maxCredit)
 );
 
 CREATE TABLE Phone(
@@ -25,24 +26,29 @@ CREATE TABLE Phone(
 );
 
 CREATE TABLE Warehouse(
-   warehouseID		VARCHAR(15) PRIMARY KEY,
-   warehouseName	VARCHAR(25),
-   phoneNumber		NUMERIC(12)
+   warehouseID    INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+   warehouseName  VARCHAR(25),
+   phoneNumber    NUMERIC(12),
+   storeID     VARCHAR(20),
+   addressID   VARCHAR(10),
+   FOREIGN KEY (addressID) REFERENCES Address(addressID),
+   FOREIGN KEY (storeID) REFERENCES Store(storeID)
 );
 
 CREATE TABLE Shipper(
-   shipperID		VARCHAR(20) PRIMARY KEY,
+   shipperID		INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
    companyName		VARCHAR(25),
    phoneNumber		NUMERIC(12)
 );
 
 CREATE TABLE Store(
-   storeID		VARCHAR(20) PRIMARY KEY,
-   storeType	VARCHAR(8),
-   taxRate		NUMERIC(2,2),
-   warehouseID	VARCHAR(15),
-   FOREIGN KEY (warehouseID) REFERENCES Warehouse(warehouseID)
-);          
+   storeID     INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+   storeType .  VARCHAR(8)
+   storeName   VARCHAR(25),
+   taxRate     NUMERIC(2,2),
+   addressID   VARCHAR(10),
+   FOREIGN KEY (addressID) REFERENCES Address(addressID)
+);        
 
 CREATE TABLE Address(
    addressID	VARCHAR(10) PRIMARY KEY,
@@ -54,8 +60,8 @@ CREATE TABLE Address(
    aNumber		VARCHAR(8),
    unit			VARCHAR(4),
    shipperID	VARCHAR(20),
-   storeID		VARCHAR(20),
-   warehouseID  VARCHAR(15),
+   storeID		INT,
+   warehouseID  INT,
    FOREIGN KEY (shipperID) REFERENCES Shipper(shipperID),
    FOREIGN KEY (storeID) REFERENCES Store(storeID),
    FOREIGN KEY (warehouseID) REFERENCES Warehouse(warehouseID),
@@ -72,8 +78,12 @@ CREATE TABLE Customer_Address(
 );
 
 CREATE TABLE Customer_Order(
-   orderID			VARCHAR(15) PRIMARY KEY,
-   orderType		VARCHAR(10),
+   orderID			INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+   storeID		   INT,
+   warehouseID    VARCHAR(10),
+   productID      VARCHAR(15),
+   stockID        VARCHAR(15),
+   quantity       INT,
    trackingNumber	NUMERIC(22),
    orderDate		DATE,
    shipDate			DATE,
@@ -105,7 +115,7 @@ CREATE TABLE Customer_Return(
 
 CREATE TABLE Bill(
    billingAcctNumber	VARCHAR(15),
-   bill_ID				VARCHAR(10),
+   bill_ID				INT NOT NULL AUTO_INCREMENT,
    amountDue			NUMERIC(10,2),
    dueDate				DATE,
    PRIMARY KEY (billingAcctNumber, bill_ID)
@@ -150,8 +160,9 @@ CREATE TABLE Manufacturer(
 
 CREATE TABLE Stock(
    stockID				VARCHAR(15) PRIMARY KEY,
-   quantitySold			NUMERIC(10),
-   quantityAvailable	NUMERIC(10)
+   quantityAvailable	NUMERIC(10),
+   warehouseID VARCHAR(15),
+   FOREIGN KEY (warehouseID) REFERENCES Warehouse(warehouseID)
 ); 
 
 CREATE TABLE Product(
@@ -194,7 +205,7 @@ CREATE TABLE Restock_Order(
    quantity			NUMERIC(10),
    status			VARCHAR(100),
    amountPaid		NUMERIC(10,2),
-   warehouseID		VARCHAR(15),
+   warehouseID		INT,
    manufacturerID	VARCHAR(15),
    FOREIGN KEY (warehouseID) REFERENCES Warehouse(warehouseID),
    FOREIGN KEY (manufacturerID) REFERENCES Manufacturer(manufacturerID)
@@ -228,7 +239,7 @@ CREATE TABLE Product_Order(
 );
 
 CREATE TABLE Store_Product(
-   storeID			VARCHAR(20),
+   storeID			INT,
    productID		VARCHAR(15),
    SKU				VARCHAR(20),
    sellingPrice		NUMERIC(10,2),
@@ -238,7 +249,7 @@ CREATE TABLE Store_Product(
 
 CREATE TABLE Warehouse_Stock(
    stockID			VARCHAR(15),
-   warehouseID		VARCHAR(15),
+   warehouseID		INT,
    PRIMARY KEY (stockID, warehouseID),
    FOREIGN KEY (stockID) REFERENCES Stock(stockID),
    FOREIGN KEY (warehouseID) REFERENCES Warehouse(warehouseID)
@@ -276,6 +287,7 @@ INSERT INTO Warehouse VALUES(789456, 'Hozzby', 2193709020);
 INSERT INTO Warehouse VALUES(289791, 'Monte', 5642132722);
 INSERT INTO Warehouse VALUES(894891, 'WDirect', 8863587190);
 
+INSERT INTO Store VALUES(1, 'Online', 0.11, 568978);
 INSERT INTO Store VALUES(7894, 'Online', 0.11, 568978);
 INSERT INTO Store VALUES(9653, 'Retail', 0.05, 289791);
 INSERT INTO Store VALUES(1256, 'Retail', 0.18, 894891);
