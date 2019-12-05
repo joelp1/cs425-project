@@ -52,14 +52,9 @@ def add_address(newCountry, newState, city, zipCode, street, aNumber, unit = Non
 	d = {"country":newCountry,"state":newState,"city":city,"zip":zipCode,"street":street,"num":aNumber,"unit":unit}
 	csr = cnx.cursor()
 	csr.execute("INSERT INTO Address(country,aState,city,zipCode,street,aNumber,unit) VALUES (%(country)s,%(state)s,%(city)s,%(zip)s,%(street)s,%(num)s,%(unit)s)", d)
-	cnx.commit()
-	csr.close()
-	csr = cnx.cursor()
 	csr.execute("SELECT addressID FROM Address WHERE (country=%(country)s AND aState=%(state)s AND city=%(city)s AND zipCode=%(zip)s AND street=%(street)s AND aNumber=%(num)s AND unit=%(unit)s) LIMIT 1",d)
 	for entry in csr:
 		aid = int(str(entry)[1:3])
-	csr.close()
-	csr=cnx.cursor()
 	csr.execute("INSERT INTO Customer_Address(customerID,addressID) VALUES (%(cid)s,%(aid)s)", {"cid":login_customer_id,"aid":aid})
 	cnx.commit()
 	csr.close()
@@ -80,6 +75,7 @@ def add_phone(phone, phone_type):
 		csr = cnx.cursor()
 		csr.execute("INSERT INTO Phone(phoneNumber,phoneType,customerID) VALUES (%(phone)s, %(type)s, %(id)s)", {"phone":phone,"type":phone_type,"customerID":login_customer_id})
 		csr.close()
+		cnx.commit()
 		success = True
 	return success
 
@@ -96,6 +92,7 @@ def update_phone(old_phone, updated_phone, phone_type):
 		csr.execute(update_phone_query, {"newPhone":updated_phone, "custID":login_customer_id, "oldPhone":old_phone, "phoneType":phone_type})
 		success = True
 		csr.close()
+		cnx.commit()
 	return success
 
 def update_name(new_first_name, new_middle_name, new_last_name):
@@ -106,6 +103,7 @@ def update_name(new_first_name, new_middle_name, new_last_name):
 		csr.execute(update_name_query, {"fn":new_first_name, "mn":new_middle_name, "ln":new_last_name, "id":login_customer_id})
 		success = True
 		csr.close()
+		cnx.commit()
 	return success
 
 def update_email(new_email):
@@ -116,6 +114,7 @@ def update_email(new_email):
 		csr.execute(update_name_query, {"newEmail":new_email, "id":login_customer_id})
 		success = True
 		csr.close()
+		cnx.commit()
 	return success
 
 def update_password(new_password):
@@ -126,6 +125,7 @@ def update_password(new_password):
 		csr.execute(update_name_query, {"newPassword":new_password, "id":login_customer_id})
 		success = True
 		csr.close()
+		cnx.commit()
 	return success
 
 def delete_account():
@@ -137,6 +137,7 @@ def delete_account():
 		success = True
 		logout()
 		csr.close()
+		cnx.commit()
 	return success
 
 def logout():
@@ -160,6 +161,7 @@ def administrative_delete(id): # permanently deletes account
 	csr.execute("DELETE FROM Account WHERE customerID = %(id)s", {"id":id})
 	csr.execute("DELETE FROM Customer WHERE customerID = %(id)s", {"id":id})
 	csr.close()
+	cnx.commit()
 
 def fixBirthday(bday):
 	return datetime.date(int(bday[-4:]),int(bday[0:2]),int(bday[3:5]))
@@ -502,6 +504,10 @@ def accountManagement():
 		for entry in csr:
 			string += entry
 		csr.close()
+
+		addressRegistered = False
+		addressConnected = False
+
 		if string.strip() == "": #add address if no address already registered
 			if add_address(fieldValues[0],fieldValues[1],fieldValues[2],fieldValues[3],fieldValues[4],fieldValues[5],fieldValues[6]):
 				g.msgbox("Address successfully added.")
