@@ -3,8 +3,8 @@ import mysql.connector
 import datetime
 import sys
 cnx = mysql.connector.connect(user='admin', password='1Sw9#Aj119&q',
-                              host='cs423project2019fall.cluster-c3cnrrte9qrk.us-east-2.rds.amazonaws.com',
-                              database='cs_project')
+							  host='cs423project2019fall.cluster-c3cnrrte9qrk.us-east-2.rds.amazonaws.com',
+							  database='cs_project')
 
 not_logged_in_id = 0
 login_customer_id = not_logged_in_id
@@ -73,7 +73,7 @@ def add_phone(phone, phone_type):
 	success = False
 	if login_customer_id != not_logged_in_id:
 		csr = cnx.cursor()
-		csr.execute("INSERT INTO Phone(phoneNumber,phoneType,customerID) VALUES (%(phone)s, %(type)s, %(id)s)", {"phone":phone,"type":phone_type,"customerID":login_customer_id})
+		csr.execute("INSERT INTO Phone(phoneNumber,phoneType,customerID) VALUES (%(phone)s, %(type)s, %(id)s)", {"phone":phone,"type":phone_type,"id":login_customer_id})
 		csr.close()
 		cnx.commit()
 		success = True
@@ -82,17 +82,26 @@ def add_phone(phone, phone_type):
 
 def update_phone(old_phone, updated_phone, phone_type):
 	success = False
-	update_phone_query = ("UPDATE Phone"
-		"SET phoneNumber = %(newPhone)s"
-		"WHERE customer_id = %(custID)s"
-		"AND phoneNumber = %(oldPhone)s"
-		"AND phone_type = %(phoneType)s")
-	if (login_customer_id != not_logged_in_id):
-		csr = cnx.cursor()
-		csr.execute(update_phone_query, {"newPhone":updated_phone, "custID":login_customer_id, "oldPhone":old_phone, "phoneType":phone_type})
-		success = True
-		csr.close()
-		cnx.commit()
+	d = {"newPhone":updated_phone, "custID":login_customer_id, "oldPhone":old_phone, "phoneType":phone_type}
+
+	check_old_entry = ("SELECT * FROM Phone WHERE (customerID = %(custID)s AND phoneNumber = %(oldPhone)s AND phoneType = %(phoneType)s)")
+	csr = cnx.cursor()
+	csr.execute(check_old_entry,d)
+	result = ""
+	for entry in csr:
+		result += str(result)
+
+	if result.strip() == "": # if entry not there, create new one
+		if add_phone(updated_phone, phone_type):
+			success = True
+
+	else:
+		update_phone_query = ("UPDATE Phone SET phoneNumber = %(newPhone)s WHERE (customerID = %(custID)s AND phoneNumber = %(oldPhone)s AND phoneType = %(phoneType)s)")
+		if (login_customer_id != not_logged_in_id):
+			csr.execute(update_phone_query, d)
+			success = True
+	csr.close()
+	cnx.commit()
 	return success
 
 def update_name(new_first_name, new_middle_name, new_last_name):
@@ -149,7 +158,7 @@ def logout():
 def display():
 	csr = cnx.cursor()
 	string = ""
-	csr.execute("SELECT * FROM Customer_Address")
+	csr.execute("SELECT * FROM Phone")
 	for entry in csr:
 		string += str(entry) + "\n\n"
 	string = string.strip()
@@ -363,16 +372,16 @@ def mainMenu():
 
 		# checks for blanks, repeat until all fields submitted
 		while 1:
-		    if fieldValues == None: break
-		    errmsg = ""
-		    
-		    for i in range(len(fieldNames)):
-		    	if fieldValues[i].strip() == "":
-		    		errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
+			if fieldValues == None: break
+			errmsg = ""
+			
+			for i in range(len(fieldNames)):
+				if fieldValues[i].strip() == "":
+					errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
 
-		    if errmsg == "": break # no problems found
+			if errmsg == "": break # no problems found
 
-		    fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
+			fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
 
 		register(fieldValues[0], fieldValues[1], fieldValues[2], fieldValues[3], fieldValues[4], fieldValues[5])
 		g.msgbox("Your account is now registered.")
@@ -421,7 +430,60 @@ def accountManagement():
 		delete_account()
 
 	elif input == "Update Phone":
-		update_phone()
+		addOrUpdate = g.buttonbox("Please select one of the following:","Update Phone",("Add","Update","Cancel"))
+
+		if addOrUpdate == "Cancel":
+			accountManagement()
+		elif addOrUpdate == "Add":
+			msg = "Please fill out the form below."
+			title = "New Phone"
+			fieldValues = []
+			fieldNames = ["Phone Number", "Phone Type"]
+			fieldValues = g.multenterbox(msg, title, fieldNames)
+
+			while 1:
+				if fieldValues == None: break
+
+				errmsg = ""
+			
+				for i in range(len(fieldNames)):
+					if (fieldValues[i].strip() == ""):
+						errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
+
+				if errmsg == "": break # no problems found
+
+				fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
+
+			if add_phone(fieldValues[0],fieldValues[1]):
+				g.msgbox("Phone successfully added.")
+			else:
+				g.msgbox("Unable to add phone. Returning to Account Management")
+			accountManagement()
+		else:
+			msg = "Please fill out the form below."
+			title = "Update Phone"
+			fieldValues = []
+			fieldNames = ["Old Phone", "New Phone", "Phone Type"]
+			fieldValues = g.multenterbox(msg, title, fieldNames)
+
+		# checks for blanks, repeat until all fields submitted
+			while 1:
+				if fieldValues == None: break
+				errmsg = ""
+			
+				for i in range(len(fieldNames)):
+					if (fieldValues[i].strip() == ""):
+						errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
+
+				if errmsg == "": break # no problems found
+
+				fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
+
+			if update_phone(fieldValues[0],fieldValues[1],fieldValues[2]):
+				g.msgbox("Phone number successfully updated.")
+			else:
+				g.msgbox("Unable to update phone. Returning to Account Management")
+			accountManagement()
 
 	elif input == "Update Name":
 		msg = "Please enter your updated name."
@@ -432,16 +494,16 @@ def accountManagement():
 
 		# checks for blanks, repeat until all fields submitted
 		while 1:
-		    if fieldValues == None: break
-		    errmsg = ""
-		    
-		    for i in range(len(fieldNames)):
-		    	if fieldValues[i].strip() == "":
-		    		errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
+			if fieldValues == None: break
+			errmsg = ""
+			
+			for i in range(len(fieldNames)):
+				if fieldValues[i].strip() == "":
+					errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
 
-		    if errmsg == "": break # no problems found
+			if errmsg == "": break # no problems found
 
-		    fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
+			fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
 
 		if update_name(fieldValues[0], fieldValues[1], fieldValues[2]):
 			g.msgbox("Name successfully updated.", "Success!")
@@ -487,16 +549,16 @@ def accountManagement():
 
 		# checks for blanks, repeat until all fields submitted
 		while 1:
-		    if fieldValues == None: break
-		    errmsg = ""
-		    
-		    for i in range(len(fieldNames)):
-		    	if (fieldValues[i].strip() == "") & (i != 6):
-		    		errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
+			if fieldValues == None: break
+			errmsg = ""
+			
+			for i in range(len(fieldNames)):
+				if (fieldValues[i].strip() == "") & (i != 6):
+					errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
 
-		    if errmsg == "": break # no problems found
+			if errmsg == "": break # no problems found
 
-		    fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
+			fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
 
 		csr = cnx.cursor()
 		csr.execute("SELECT * FROM Customer_Address WHERE customerID = %(id)s", {"id":login_customer_id})
