@@ -289,8 +289,20 @@ def purchase_with_store_credit():
 def purchase_with_credit_card():
 	return
 
-def get_purchase_history():
-	return
+def view_transaction_history():
+	csr = cnx.cursor()
+	transaction_history_query = ("SELECT orderID, trackingNumber, orderDate, shipDate, companyName, name FROM (Customer_Order NATURAL JOIN Shipper NATURAL JOIN Product_Order NATURAL JOIN Product) WHERE customerID = %(id)s")
+	csr.execute(transaction_history_query, {"id":login_customer_id})
+	string = ""
+	for (orderID, trackingNumber, orderDate, shipDate, shipperName, productName) in csr:
+		string += "Order ID: "+str(orderID)+"\nOrder Date: "+str(orderDate)+"\nShip Date: "+str(shipDate)
+		string += "\nProduct Name: "+str(productName)+"\nShipment Company: "+str(shipperName)
+		string += "\nTracking ID: "+str(trackingNumber) +"\n\n\n"
+	if string.strip() == "":
+		string = "You have no transaction history"
+	csr.close()
+	g.msgbox(string, "Transaction History")
+	menu()
 
 # ********************************************************************************************************************
 # Driver Functions
@@ -316,7 +328,7 @@ def mainMenu():
 			mainMenu()
 
 	elif input == "Guest":
-		login_cust_id = 1 # guest takes custID 1
+		login_cust_id = 0
 		display()
 		menu()
 
@@ -370,7 +382,7 @@ def menu():
 		shop()
 	else:
 		if login_customer_id != not_logged_in_id:
-			transHist()
+			view_transaction_history()
 		else:
 			g.msgbox("You are not logged in. Please select another option.")
 			menu()
