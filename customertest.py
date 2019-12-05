@@ -11,19 +11,16 @@ login_customer_id = not_logged_in_id
 
 def login(email, given_password):
 	success = False
-	query = ("SELECT password, customerID, tombstone FROM Customer WHERE emailAddress = %(email)s")
+	query = ("SELECT password, customerID, tombstone FROM Customer WHERE emailAddress = %(email)s LIMIT 1")
 	csr = cnx.cursor()
 	csr.execute(query, {"email":email})
 	for (password, customer_id, tombstone) in csr:
-		g.msgbox(customer_id)
 		if ((given_password == password) & (bool(tombstone) != True)):
+			global login_customer_id 
 			login_customer_id = customer_id
 			success = True
 	csr.close()
 	return success
-
-def get_customer_id():
-	return login_customer_id
 
 def register(given_first_name, given_middle_name, given_last_name, given_birthday, given_email, given_password):
 	success = False
@@ -50,38 +47,51 @@ def register(given_first_name, given_middle_name, given_last_name, given_birthda
 	success = True
 	return success
 
-def update_address():
-	# CODE STILL NEEDS TO BE IMPLEMENTED
-	return
+def update_address(newCountry, newState, city, zipCode, street, aNumber, unit = None):
+	success = False
+	csr = cnx.cursor()
+	csr.execute("SELECT addressID FROM Customer_Address WHERE customerID = %(custID)s", {"custID":login_customer_id})
+	addressID = csr
+	csr.execute("UPDATE Address(country,aState,city,zipCode,street,aNumber,unit)")
+	return success
 
-def update_phone(old_phone, updated_phone):
+def add_phone(phone, phone_type):
+	success = False
+	if login_customer_id != not_logged_in_id:
+		csr = cnx.cursor()
+		csr.execute("INSERT INTO Phone(phoneNumber,phoneType,customerID) VALUES (%(phone)s, %(type)s, %(id)s)", {"phone":phone,"type":phone_type,"customerID":login_customer_id})
+		csr.close()
+		success = True
+	return success
+
+
+def update_phone(old_phone, updated_phone, phone_type):
 	success = False
 	update_phone_query = ("UPDATE Phone"
-		"SET phoneNumber = %s"
-		"WHERE customer_id = %s"
-		"AND phoneNumber = %s")
+		"SET phoneNumber = %(newPhone)s"
+		"WHERE customer_id = %(custID)s"
+		"AND phoneNumber = %(oldPhone)s"
+		"AND phone_type = %(phoneType)s")
 	if (login_customer_id != not_logged_in_id):
 		csr = cnx.cursor()
-		csr.execute(update_phone_query, (updated_phone, login_customer_id, old_phone))
+		csr.execute(update_phone_query, {"newPhone":updated_phone, "custID":login_customer_id, "oldPhone":old_phone, "phoneType":phone_type})
 		success = TRUE
 		csr.close()
 	return success
 
 def update_name(new_first_name, new_middle_name, new_last_name):
 	success = False
-	update_name_query = ("UPDATE Customer"
-		"SET firstName = %s, middleName = %s, last_name = %s"
-		"WHERE customer_id = %s")
+	update_name_query = ("UPDATE Customer SET firstName = %(fn)s, middleName = %(mn)s, lastName = %(ln)s WHERE customerID = %(id)s")
 	if (login_customer_id != not_logged_in_id):
 		csr = cnx.cursor()
-		csr.execute(update_name_query, (new_first_name, new_middle_name, new_last_name, login_customer_id))
-		success = TRUE
+		csr.execute(update_name_query, {"fn":new_first_name, "mn":new_middle_name, "ln":new_last_name, "id":login_customer_id})
+		success = True
 		csr.close()
 	return success
 
 def update_email(new_email):
 	success = False
-	update_name_query = ("UPDATE Customer SET emailAddress = %(newEmail)s WHERE customer_id = %(id)s")
+	update_name_query = ("UPDATE Customer SET emailAddress = %(newEmail)s WHERE customerID = %(id)s")
 	if (login_customer_id != not_logged_in_id):
 		csr = cnx.cursor()
 		csr.execute(update_name_query, {"newEmail":new_email, "id":login_customer_id})
@@ -89,19 +99,32 @@ def update_email(new_email):
 		csr.close()
 	return success
 
-def delete_account():
+def update_password(new_password):
 	success = False
-	delete_account = ("UPDATE Customer SET tombstone = TRUE WHERE customer_id = %s")
+	update_name_query = ("UPDATE Customer SET password = %(newPassword)s WHERE customerID = %(id)s")
 	if (login_customer_id != not_logged_in_id):
 		csr = cnx.cursor()
-		csr.execute(delete_account, (login_customer_id))
+		csr.execute(update_name_query, {"newPassword":new_password, "id":login_customer_id})
+		success = True
+		csr.close()
+	return success
+
+def delete_account():
+	success = False
+	delete_account = ("UPDATE Customer SET tombstone = True WHERE customerID = %(id)s")
+	if (login_customer_id != not_logged_in_id):
+		csr = cnx.cursor()
+		csr.execute(delete_account, {"id":login_customer_id})
 		success = TRUE
 		logout()
 		csr.close()
 	return success
 
 def logout():
+	global login_customer_id
 	login_customer_id = not_logged_in_id
+	g.msgbox("You have successfully logged out. Now returning to the main menu.")
+	mainMenu()
 
 def display():
 	csr = cnx.cursor()
@@ -141,11 +164,14 @@ def mainMenu():
 
 		login(userEmail, userPassword)
 
-	elif input == "Guest":
-		login_cust_id = 99999
-		display()
-	elif input == "Create An Account":
+		menu()
 
+	elif input == "Guest":
+		login_cust_id = 1 # guest takes custID 1
+		display()
+		menu()
+
+	elif input == "Create An Account":
 		# box text
 		msg = "Please give us your personal data that we totally will not sell"
 		title = "Register Account"
@@ -169,23 +195,129 @@ def mainMenu():
 		register(fieldValues[0], fieldValues[1], fieldValues[2], fieldValues[3], fieldValues[4], fieldValues[5])
 		g.msgbox("Your account is now registered. Redirecting you back to the main menu.")
 		mainMenu()
+
 	else:
 		sys.exit()
 
-def menu(name):
-	msg = "Welcome %s! What would you like to do?" % name
+def menu():
+	msg = "Welcome! What would you like to do?"
 	title = "Home"
 	options = ["Account Management", "View Transaction History", "Shop", "Logout", "Quit"]
 
 	input = g.buttonbox(msg, title, options)
+	if input == "Account Management":
+		if login_customer_id != not_logged_in_id:
+			accountManagement()
+		else:
+			g.msgbox("You are not logged in. Please select another option.")
+			menu()
+	elif input == "Quit":
+		sys.exit()
+	elif input == "Logout":
+		logout()
+	elif input == "Shop":
+		shop()
+	else:
+		if login_customer_id != not_logged_in_id:
+			transHist()
+		else:
+			g.msgbox("You are not logged in. Please select another option.")
+			menu()
+
+def accountManagement():
+	msg = "Welcome to Account Management. Please select an option."
+	title = "Account Management"
+	fieldNames = ["Update Name", "Update Email", "Update Password", "Update Address", "Delete Account", "Go Back"]
+	input = g.buttonbox(msg, title, fieldNames)
+
+	if input == "Go Back":
+		menu()
+
+	elif input == "Delete Account":
+		delete_account()
+
+	elif input == "Update Name":
+		msg = "Please enter your updated name."
+		title = "Update Name"
+		fieldValues = []
+		fieldNames = ["First Name", "Middle Name", "Last Name"]
+		fieldValues = g.multenterbox(msg, title, fieldNames)
+
+		# checks for blanks, repeat until all fields submitted
+		while 1:
+		    if fieldValues == None: break
+		    errmsg = ""
+		    
+		    for i in range(len(fieldNames)):
+		    	if fieldValues[i].strip() == "":
+		    		errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
+
+		    if errmsg == "": break # no problems found
+
+		    fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
+
+		if update_name(fieldValues[0], fieldValues[1], fieldValues[2]):
+			g.msgbox("Name successfully updated.", "Success!")
+			accountManagement()
+		else:
+			g.msgbox("Name change unsuccessful. Returning to Account Management.")
+			accountManagement()
+
+	elif input == "Update Email":
+		msg = "Please enter your new email address."
+		title = "Change email"
+		newEmail = g.enterbox(msg, title)
+
+		if update_email(newEmail):
+			g.msgbox("Email successfully updated.")
+			accountManagement()
+		else:
+			g.msgbox("Unable to update email address. Returning to Account Management.")
+			accountManagement()
+
+	elif input == "Update Password":
+		msg = "Please enter your new password."
+		title = "Change password"
+		newPassword = g.enterbox(msg, title)
+
+		if update_password(newPassword):
+			g.msgbox("Password successfully changed.")
+			accountManagement()
+		else:
+			g.msgbox("Unable to update password. Returning to Account Management.")
+			accountManagement()
+
+	else: # update address
+		msg = "Please give us your personal data that we totally will not sell"
+		title = "Register Account"
+		fieldValues = []
+		fieldNames = ["Country", "State", "City", "Zip Code", "Street", "Street Number", "Unit"]
+		fieldValues = g.multenterbox(msg, title, fieldNames)
+
+		# checks for blanks, repeat until all fields submitted
+		while 1:
+		    if fieldValues == None: break
+		    errmsg = ""
+		    
+		    for i in range(len(fieldNames)):
+		    	if (fieldValues[i].strip() == "") & (i != 6):
+		    		errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
+
+		    if errmsg == "": break # no problems found
+
+		    fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
+
+		if update_address(fieldValues[0],fieldValues[1],fieldValues[2],fieldValues[3],fieldValues[4],fieldValues[5],fieldValues[6]):
+			g.msgbox("Address successfully changed.")
+			accountManagement()
+		else:
+			g.msgbox("Unable to update address. Returning to Account Management.")
+			accountManagement()
+
 
 # ********************************************************************************************************************
 # Driver
 # ********************************************************************************************************************
 
-csr = cnx.cursor()
-csr.execute("INSERT INTO Customer(customerID, firstName, middleName, lastName, birthDate, emailAddress, password) VALUES (%(id)s, %(fn)s, %(mn)s, %(ln)s, %(b)s, %(e)s, %(p)s)",
-	{"id":99999,"fn":"Guest","mn":"","ln":"","b":"","e":"","p":"password"})
-csr.close()
 mainMenu()
 
