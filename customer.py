@@ -271,7 +271,7 @@ def purchase_with_store_credit:
 		"END IF;"
 		"IF (available < quantity) THEN"
 		"SET leftOver = 0;"
-		"SET quantity = quantity - available"
+		"SET quantity = quantity - available;"
 		"UPDATE Stock"
 		"SET quantityAvailable = leftOver"
 		"WHERE warehouseID = warehouse"
