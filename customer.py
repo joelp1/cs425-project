@@ -54,8 +54,9 @@ def add_address(newCountry, newState, city, zipCode, street, aNumber, unit = Non
 	csr.execute("INSERT INTO Address(country,aState,city,zipCode,street,aNumber,unit) VALUES (%(country)s,%(state)s,%(city)s,%(zip)s,%(street)s,%(num)s,%(unit)s)", d)
 	csr.execute("SELECT addressID FROM Address WHERE (country=%(country)s AND aState=%(state)s AND city=%(city)s AND zipCode=%(zip)s AND street=%(street)s AND aNumber=%(num)s AND unit=%(unit)s) LIMIT 1",d)
 	for entry in csr:
-		aid = str(entry)[1:3]
-	csr.execute("UPDATE Customer_Address SET (%(cid)s,%(aid)s) WHERE customerID=%(cid)s", {"cid":login_customer_id,"aid":aid})
+		aid = entry[0]
+	csr.execute("DELETE FROM Customer_Address WHERE customerID = %(cid)s", {"cid":login_customer_id})
+	csr.execute("INSERT INTO Customer_Address VALUES (%(cid)s,%(aid)s)", {"cid":login_customer_id,"aid":aid})
 	cnx.commit()
 	csr.close()
 	success = True
@@ -67,7 +68,8 @@ def update_address(newCountry, newState, city, zipCode, street, aNumber, unit = 
 	csr.execute("SELECT addressID FROM Customer_Address WHERE customerID = %(custID)s LIMIT 1", {"custID":login_customer_id})
 	for (aid) in csr:
 		addressID = aid[0]
-	csr.execute("UPDATE Address(country,aState,city,zipCode,street,aNumber,unit) ")
+	d = {"address_id":addressID,"country":newCountry,"aState":newState,"city":city,"zipCode":zipCode,"street":street,"aNumber":aNumber,"unit":unit}
+	csr.execute("UPDATE Address SET country=%(country)s AND aState=%(aState)s AND city=%(city)s AND zipCode=%(zipCode)s AND street=%(street)s AND aNumber=%(aNumber)s AND unit=%(unit)s WHERE addressID = %(address_id)s", d)
 	return success
 
 def add_phone(phone, phone_type):
@@ -544,10 +546,6 @@ def accountManagement():
 			accountManagement()
 
 	else: # update address
-		addOrUpdate = g.buttonbox("Do you want to add or update an address?","Update Address", ("Add", "Update", "Cancel"))
-		if addOrUpdate == "Cancel":
-			accountManagement()
-
 		msg = "Please give us your personal data that we totally will not sell"
 		title = "Register Account"
 		fieldValues = []
@@ -568,23 +566,33 @@ def accountManagement():
 			fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
 
 		csr = cnx.cursor()
+
+		(country, state, city, zip_code, street, streetNum, unit) = fieldValues[0],fieldValues[1],fieldValues[2],fieldValues[3],fieldValues[4],fieldValues[5],fieldValues[6]
+
 		csr.execute("SELECT * FROM Customer_Address WHERE customerID = %(id)s LIMIT 1", {"id":login_customer_id})
 		string = ""
 		for (cid,aid) in csr:
-			string += str(cid) + str(aid)
+			string += str(aid)
+
+		d = {"address_id":string,"country":country,"state":state,"city":city,"zip":zip_code,"street":street,"num":streetNum,"unit":unit}
+
+		csr.execute("SELECT addressID FROM Address WHERE (country=%(country)s AND aState=%(state)s AND city=%(city)s AND zipCode=%(zip)s AND street=%(street)s AND aNumber=%(num)s AND unit=%(unit)s) LIMIT 1",d)
+		inAddresses=""
+		for entry in csr:
+			inAddresses = str(entry)
 		csr.close()
 
-		addressRegistered = False
-		addressConnected = False
+		addressRegistered = inAddresses.strip() != ""
+		addressConnected = string.strip() != ""
 
-		if string.strip() == "": #add address if no address already registered
-			if add_address(fieldValues[0],fieldValues[1],fieldValues[2],fieldValues[3],fieldValues[4],fieldValues[5],fieldValues[6]):
+		if ((not addressRegistered) or (not addressConnected and not addressRegistered)): # add address if no address already registered
+			if add_address(country, state, city, zip_code, street, streetNum, unit):
 				g.msgbox("Address successfully added.")
 			else:
 				g.msgbox("Unable to add address. Returning to Account Management")
 			accountManagement()
-		else:
-			if update_address(fieldValues[0],fieldValues[1],fieldValues[2],fieldValues[3],fieldValues[4],fieldValues[5],fieldValues[6]):
+		else: # this chunk executes if the user wants to update to an address that isn't in our Address table
+			if update_address(country, state, city, zip_code, street, streetNum, unit):
 				g.msgbox("Address successfully updated.")
 			else:
 				g.msgbox("Unable to update address. Returning to Account Management.")
