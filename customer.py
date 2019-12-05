@@ -246,7 +246,7 @@ def purchase_with_store_credit:
 		"CREATE PROCEDURE reduceStock("
 		"IN stock VARCHAR(15), "
 		"IN quantity INT"
-		"OUT warehouse_mapping VARCHAR(150)) DEFAULT ''"
+		"OUT warehouse_mapping VARCHAR(150) DEFAULT '')"
 		"BEGIN"
 		"DECLARE available INT DEFAULT 0;"
 		"DECLARE warehouse VARCHAR(15);"
