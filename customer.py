@@ -54,8 +54,8 @@ def add_address(newCountry, newState, city, zipCode, street, aNumber, unit = Non
 	csr.execute("INSERT INTO Address(country,aState,city,zipCode,street,aNumber,unit) VALUES (%(country)s,%(state)s,%(city)s,%(zip)s,%(street)s,%(num)s,%(unit)s)", d)
 	csr.execute("SELECT addressID FROM Address WHERE (country=%(country)s AND aState=%(state)s AND city=%(city)s AND zipCode=%(zip)s AND street=%(street)s AND aNumber=%(num)s AND unit=%(unit)s) LIMIT 1",d)
 	for entry in csr:
-		aid = int(str(entry)[1:3])
-	csr.execute("INSERT INTO Customer_Address(customerID,addressID) VALUES (%(cid)s,%(aid)s)", {"cid":login_customer_id,"aid":aid})
+		aid = str(entry)[1:3]
+	csr.execute("UPDATE Customer_Address SET (%(cid)s,%(aid)s) WHERE customerID=%(cid)s", {"cid":login_customer_id,"aid":aid})
 	cnx.commit()
 	csr.close()
 	success = True
@@ -64,9 +64,10 @@ def add_address(newCountry, newState, city, zipCode, street, aNumber, unit = Non
 def update_address(newCountry, newState, city, zipCode, street, aNumber, unit = None):
 	success = False
 	csr = cnx.cursor()
-	csr.execute("SELECT addressID FROM Customer_Address WHERE customerID = %(custID)s", {"custID":login_customer_id})
-	addressID = csr
-	csr.execute("UPDATE Address(country,aState,city,zipCode,street,aNumber,unit)")
+	csr.execute("SELECT addressID FROM Customer_Address WHERE customerID = %(custID)s LIMIT 1", {"custID":login_customer_id})
+	for (aid) in csr:
+		addressID = aid[0]
+	csr.execute("UPDATE Address(country,aState,city,zipCode,street,aNumber,unit) ")
 	return success
 
 def add_phone(phone, phone_type):
@@ -158,7 +159,7 @@ def logout():
 def display():
 	csr = cnx.cursor()
 	string = ""
-	csr.execute("SELECT * FROM Phone")
+	csr.execute("SELECT * FROM Address")
 	for entry in csr:
 		string += str(entry) + "\n\n"
 	string = string.strip()
@@ -418,10 +419,16 @@ def menu():
 			menu()
 
 def accountManagement():
+	csr = cnx.cursor()
+	csr.execute("SELECT firstName,emailAddress,phoneNumber,phoneType,aState,city,zipCode,street,aNumber FROM (Customer NATURAL JOIN Phone NATURAL JOIN (Address NATURAL JOIN Customer_Address)) WHERE customerID = %(id)s LIMIT 1", {"id":login_customer_id})
+	info_display = ""
+	for (first,email,phone,ptype,state,city,zipCode,street,num) in csr:
+		info_display += "Welcome to Account Management, %(f)s! Your account information is shown below. \n\nEmail: %(e)s \n%(t)s: %(p)s \nAddress: %(n)s %(s)s, %(c)s, %(st)s %(z)s \n\n\nPlease select an option." % {"f":first,"e":email,"t":ptype,"p":phone,"n":num,"s":street,"c":city,"st":state,"z":zipCode}
+
 	msg = "Welcome to Account Management. Please select an option."
 	title = "Account Management"
 	fieldNames = ["Update Name", "Update Email", "Update Password", "Update Phone", "Update Address", "Delete Account", "Go Back"]
-	input = g.buttonbox(msg, title, fieldNames)
+	input = g.buttonbox(info_display, title, fieldNames)
 
 	if input == "Go Back":
 		menu()
@@ -561,10 +568,10 @@ def accountManagement():
 			fieldValues = g.multenterbox(errmsg, title, fieldNames, fieldValues)
 
 		csr = cnx.cursor()
-		csr.execute("SELECT * FROM Customer_Address WHERE customerID = %(id)s", {"id":login_customer_id})
+		csr.execute("SELECT * FROM Customer_Address WHERE customerID = %(id)s LIMIT 1", {"id":login_customer_id})
 		string = ""
-		for entry in csr:
-			string += entry
+		for (cid,aid) in csr:
+			string += str(cid) + str(aid)
 		csr.close()
 
 		addressRegistered = False
