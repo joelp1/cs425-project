@@ -1,23 +1,26 @@
 CREATE TABLE Customer(
-   customerID	VARCHAR(10) PRIMARY KEY,
+   customerID	INT IDENTITY(0,1) PRIMARY KEY,
    firstName	VARCHAR(20),
    middleName	VARCHAR(20),
    lastName		VARCHAR(20),
-   birthDate	DATE
+   birthDate	DATE,
+   emailAddress  VARCHAR(30),
+   password       VARCHAR(25) NOT NULL,
+   tombstone      BOOLEAN
 );
 
 CREATE TABLE Account(
-   emailAddress		VARCHAR(20) PRIMARY KEY,
-   password			VARCHAR(25) NOT NULL,
-   customerID		VARCHAR(10),
+   customerID		INT,
+   maxCredit      INT,
+   balance     INT,
+   mpr         NUMERIC(2.2),
    FOREIGN KEY (customerID) REFERENCES Customer(customerID),
-   CONSTRAINT custID UNIQUE(customerID)    
 );
 
 CREATE TABLE Phone(
    phoneNumber		NUMERIC(12) PRIMARY KEY,
    phoneType		VARCHAR(10),
-   customerID		VARCHAR(10),
+   customerID		INT,
    FOREIGN KEY (customerID) REFERENCES Customer(customerID)
 );
 
@@ -41,11 +44,6 @@ CREATE TABLE Store(
    FOREIGN KEY (warehouseID) REFERENCES Warehouse(warehouseID)
 );          
 
-
-
-
-
-
 CREATE TABLE Address(
    addressID	VARCHAR(10) PRIMARY KEY,
    country		VARCHAR(15),
@@ -66,7 +64,7 @@ CREATE TABLE Address(
 );
 
 CREATE TABLE Customer_Address(
-   customerID	VARCHAR(10),
+   customerID	INT,
    addressID	VARCHAR(10),
    PRIMARY KEY (customerID, addressID),
    FOREIGN KEY (customerID) REFERENCES Customer(customerID),
@@ -79,7 +77,7 @@ CREATE TABLE Customer_Order(
    trackingNumber	NUMERIC(22),
    orderDate		DATE,
    shipDate			DATE,
-   customerID		VARCHAR(10),
+   customerID		INT,
    shipperID		VARCHAR(20),
    FOREIGN KEY (customerID) REFERENCES Customer(customerID),
    FOREIGN KEY (shipperID) REFERENCES Shipper(shipperID)
@@ -246,24 +244,27 @@ CREATE TABLE Warehouse_Stock(
    FOREIGN KEY (warehouseID) REFERENCES Warehouse(warehouseID)
 );
 
-INSERT INTO Customer VALUES(1016679, 'Carrie', 'M', 'Clarkson', '2017-04-17');
-INSERT INTO Customer VALUES(1026754, 'Eddie', 'K', 'Bright', '1976-05-14');
-INSERT INTO Customer VALUES(1035489, 'Anne', 'G', 'Jefferson', '1988-12-10');
-INSERT INTO Customer VALUES(1089784, 'Xavier', 'C', 'Coulson', '1974-06-14');
-INSERT INTO Customer VALUES(1023559, 'Devan', 'J', 'Osborn', '1995-08-24');
+INSERT INTO Customer VALUES(NULL, NULL, NULL, NULL, 'unknown', NULL);
+INSERT INTO Customer VALUES('Carrie', 'M', 'Clarkson', '2017-04-17', 'cclarkson@gmail.com', 'ponta123');
+INSERT INTO Customer VALUES('Eddie', 'K', 'Bright', '1976-05-14', 'ebright@gmail.com', 'effect1910');
+INSERT INTO Customer VALUES('Anne', 'G', 'Jefferson', '1988-12-10', 'ajefferson@gmail.com', 'p44ck4');
+INSERT INTO Customer VALUES('Xavier', 'C', 'Coulson', '1974-06-14', 'xcoulson@gmail.com', 'tm5dqb');
+INSERT INTO Customer VALUES('Devan', 'J', 'Osborn', '1995-08-24', 'dosborn@gmail.com', '6f9u0z');
 
-INSERT INTO Account VALUES('cclarkson@gmail.com', 'ponta123', 1016679);
-INSERT INTO Account VALUES('ebright@gmail.com', 'effect1910', 1026754);
-INSERT INTO Account VALUES('ajefferson@gmail.com', 'p44ck4', 1035489);
-INSERT INTO Account VALUES('xcoulson@gmail.com', 'tm5dqb', 1089784);
-INSERT INTO Account VALUES('dosborn@gmail.com', '6f9u0z', 1023559);
+INSERT INTO Account VALUES(0, 0, 0);
+INSERT INTO Account VALUES(1, 1000, 0);
+INSERT INTO Account VALUES(2, 1000, 100);
+INSERT INTO Account VALUES(3, 1000, 1000);
+INSERT INTO Account VALUES(4, 1000, 900);
+INSERT INTO Account VALUES(5, 0, 0);
 
-INSERT INTO Phone VALUES(4778555465, 'Home', 1016679);
-INSERT INTO Phone VALUES(2275191699, 'Cell', 1016679);
-INSERT INTO Phone VALUES(6703616928, 'Home', 1026754);
-INSERT INTO Phone VALUES(6124568473, 'Home', 1035489);
-INSERT INTO Phone VALUES(8592802741, 'Home', 1089784);
-INSERT INTO Phone VALUES(3816166086, 'Home', 1023559);
+
+INSERT INTO Phone VALUES(4778555465, 'Home', 1);
+INSERT INTO Phone VALUES(2275191699, 'Cell', 1);
+INSERT INTO Phone VALUES(6703616928, 'Home', 2);
+INSERT INTO Phone VALUES(6124568473, 'Home', 3);
+INSERT INTO Phone VALUES(8592802741, 'Home', 4);
+INSERT INTO Phone VALUES(3816166086, 'Home', 5);
 
 INSERT INTO Shipper VALUES(1456786, 'USPS', 805229085);
 INSERT INTO Shipper VALUES(1243243, 'UPS', 8007425877);
@@ -299,11 +300,11 @@ INSERT INTO Address VALUES(698554, 'USA', 'IL', 'Palatine', 60067, 'Rockledge St
 INSERT INTO Address VALUES(555784, 'USA', 'FL', 'Palm Coast', 32137, 'Center St.', 391, NULL, NULL, NULL, NULL);
 INSERT INTO Address VALUES(222471, 'USA', 'IN', 'Portage', 46368, 'Academy Drive', 210, NULL, NULL, NULL, NULL);
 
-INSERT INTO Customer_Address VALUES(1016679, 789454);
-INSERT INTO Customer_Address VALUES(1026754, 457248);
-INSERT INTO Customer_Address VALUES(1035489, 698554);
-INSERT INTO Customer_Address VALUES(1089784, 555784);
-INSERT INTO Customer_Address VALUES(1023559, 222471);
+INSERT INTO Customer_Address VALUES(1, 789454);
+INSERT INTO Customer_Address VALUES(2, 457248);
+INSERT INTO Customer_Address VALUES(3, 698554);
+INSERT INTO Customer_Address VALUES(4, 555784);
+INSERT INTO Customer_Address VALUES(5, 222471);
 
 INSERT INTO Manufacturer VALUES(45785, 'Sony', 7732024561, 'Japan');
 INSERT INTO Manufacturer VALUES(87845, 'Apple', 5638776504, 'China');
@@ -356,13 +357,13 @@ INSERT INTO Bundle VALUES(456789, 'Laptop and Printer ');
 INSERT INTO Product_Bundle VALUES('MZDQMF17 ', 'B07211W6X2', 456789);
 INSERT INTO Product_Bundle VALUES('30S70U3A', 'B07HB4QHC3', 456789);
 
-INSERT INTO Customer_Order VALUES(2597792, 'Online', 09243418643242106562, '2019-08-19', '2019-08-20', 1016679, 1456786); 
-INSERT INTO Customer_Order VALUES(8749848, 'Retail', NULL, '2019-12-10', NULL, 1026754, NULL);
+INSERT INTO Customer_Order VALUES(2597792, 'Online', 09243418643242106562, '2019-08-19', '2019-08-20', 1, 1456786); 
+INSERT INTO Customer_Order VALUES(8749848, 'Retail', NULL, '2019-12-10', NULL, 2, NULL);
 INSERT INTO Customer_Order VALUES(1793824, 'Online', 04326698363223743408
-, '2019-04-02', '2019-04-03', 1035489, 1234568);
-INSERT INTO Customer_Order VALUES(2589741, 'Retail', NULL, '2019-09-10', NULL, 1089784, NULL);
-INSERT INTO Customer_Order VALUES(3336841, 'Retail', NULL, '2019-11-27', NULL, 1089784, NULL);
-INSERT INTO Customer_Order VALUES(5847951, 'Online', 04326698363223743408, '2019-07-01', '2019-07-01', 1023559, 1243243);
+, '2019-04-02', '2019-04-03', 3, 1234568);
+INSERT INTO Customer_Order VALUES(2589741, 'Retail', NULL, '2019-09-10', NULL, 4, NULL);
+INSERT INTO Customer_Order VALUES(3336841, 'Retail', NULL, '2019-11-27', NULL, 4, NULL);
+INSERT INTO Customer_Order VALUES(5847951, 'Online', 04326698363223743408, '2019-07-01', '2019-07-01', 5, 1243243);
 
 INSERT INTO Bill VALUES(189475, 458967, 325.50, '2019-05-01');
 
