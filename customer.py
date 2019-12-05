@@ -242,7 +242,46 @@ def qualify_purchase_available_stock(product_id, wanted_quantity):
 
 
 def purchase_with_store_credit:
-	
+	transaction = ("DELIMITER $$"
+		"CREATE PROCEDURE reduceStock("
+		"IN stock VARCHAR(15), "
+		"IN quantity INT"
+		"OUT warehouse_mapping VARCHAR(150)) DEFAULT ''"
+		"BEGIN"
+		"DECLARE available INT DEFAULT 0;"
+		"DECLARE warehouse VARCHAR(15);"
+		"DECLARE leftOver INT DEFAULT 0"
+		"test_loop: LOOP"
+		"IF (quantity = 0) THEN"
+		"LEAVE test_loop;"
+		"END IF;"
+		"SELECT warehouseID, quantityAvailable"
+		"INTO warehouse, available"
+		"FROM Stock"
+		"WHERE stockID = stock"
+		"HAVING quantityAvailable = MAX(quantityAvailable);"
+		"IF (available >= quantity) THEN"
+		"SET leftOver = quantity - available;"
+		"UPDATE Stock"
+		"SET quantityAvailable = leftOver"
+		"WHERE warehouseID = warehouse"
+		"AND stockID = stock;"
+		"SET warehouse_mapping = CONCAT(warehouse, ':', quantity, ',', warehouse_mapping);"
+		"LEAVE test_loop;"
+		"END IF;"
+		"IF (available < quantity) THEN"
+		"SET leftOver = 0;"
+		"SET quantity = quantity - available"
+		"UPDATE Stock"
+		"SET quantityAvailable = leftOver"
+		"WHERE warehouseID = warehouse"
+		"AND stockID = stock;"
+		"SET warehouse_mapping = CONCAT(warehouse, ':', available, ',', warehouse_mapping);"
+		"END IF;"
+		"END LOOP;"
+		"END$$"
+		"DELIMITER ;"
+)
 
 def purchase_with_credit_card
 
