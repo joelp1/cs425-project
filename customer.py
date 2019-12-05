@@ -420,17 +420,32 @@ def menu():
 			g.msgbox("You are not logged in. Please select another option.")
 			menu()
 
-def accountManagement():
+def generateAccountManagementDisplay():
 	csr = cnx.cursor()
-	csr.execute("SELECT firstName,emailAddress,phoneNumber,phoneType,aState,city,zipCode,street,aNumber FROM (Customer NATURAL JOIN Phone NATURAL JOIN (Address NATURAL JOIN Customer_Address)) WHERE customerID = %(id)s LIMIT 1", {"id":login_customer_id})
-	info_display = ""
-	for (first,email,phone,ptype,state,city,zipCode,street,num) in csr:
-		info_display += "Welcome to Account Management, %(f)s! Your account information is shown below. \n\nEmail: %(e)s \n%(t)s: %(p)s \nAddress: %(n)s %(s)s, %(c)s, %(st)s %(z)s \n\n\nPlease select an option." % {"f":first,"e":email,"t":ptype,"p":phone,"n":num,"s":street,"c":city,"st":state,"z":zipCode}
 
+	# pull info from customer
+	csr.execute("SELECT firstName,emailAddress FROM Customer WHERE customerID = %(id)s LIMIT 1", {"id":login_customer_id})
+	info_display = ""
+	for (first,email) in csr:
+		info_display += "Welcome to Account Management, "+first+"! Your account information is shown below. \n\nEmail: "+email+" \n"
+
+	csr.execute("SELECT phoneNumber,phoneType FROM Phone WHERE customerID = %(id)s", {"id":login_customer_id})
+	for (num,device) in csr:
+		info_display += device+": "+str(num)+"\n"
+
+	csr.execute("SELECT aState,city,zipCode,street,aNumber FROM (Address NATURAL JOIN Customer_Address) WHERE customerID = %(id)s", {"id":login_customer_id})
+	for (state, city, zipCode, street,num) in csr:
+		info_display += "Address: "+str(num)+" "+street+", "+city+", "+state+" "+zipCode+"\n"
+
+	info_display += "\n\nPlease choose an option below."
+
+	return info_display
+
+def accountManagement():
 	msg = "Welcome to Account Management. Please select an option."
 	title = "Account Management"
 	fieldNames = ["Update Name", "Update Email", "Update Password", "Update Phone", "Update Address", "Delete Account", "Go Back"]
-	input = g.buttonbox(info_display, title, fieldNames)
+	input = g.buttonbox(generateAccountManagementDisplay(), title, fieldNames)
 
 	if input == "Go Back":
 		menu()
