@@ -1,5 +1,5 @@
 CREATE TABLE Customer(
-   customerID	INT IDENTITY(0,1) PRIMARY KEY,
+   customerID	INT AUTO_INCREMENT PRIMARY KEY,
    firstName	VARCHAR(20),
    middleName	VARCHAR(20),
    lastName		VARCHAR(20),
@@ -10,11 +10,11 @@ CREATE TABLE Customer(
 );
 
 CREATE TABLE Account(
-   customerID		INT,
-   maxCredit      INT,
-   balance     INT,
-   mpr         NUMERIC(2.2),
-   FOREIGN KEY (customerID) REFERENCES Customer(customerID),
+   customerID		INT PRIMARY KEY,
+   maxCredit      	INT,
+   balance    		INT,
+   mpr              NUMERIC(2,2),
+   FOREIGN KEY (customerID) REFERENCES Customer(customerID)
 );
 
 CREATE TABLE Phone(
