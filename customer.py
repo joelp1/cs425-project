@@ -54,6 +54,7 @@ def add_address(newCountry, newState, city, zipCode, street, aNumber, unit = Non
 	csr = cnx.cursor()
 	csr.execute("INSERT INTO Address(country,aState,city,zipCode,street,aNumber,unit) VALUES (%(country)s,%(state)s,%(city)s,%(zip)s,%(street)s,%(num)s,%(unit)s)", d)
 	csr.execute("SELECT addressID FROM Address WHERE (country=%(country)s AND aState=%(state)s AND city=%(city)s AND zipCode=%(zip)s AND street=%(street)s AND aNumber=%(num)s AND unit=%(unit)s) LIMIT 1",d)
+	aid=0
 	for entry in csr:
 		aid = entry[0]
 	csr.execute("DELETE FROM Customer_Address WHERE customerID = %(cid)s", {"cid":login_customer_id})
@@ -251,7 +252,7 @@ def price_check(product_id, quantity):
 
 def credit_check(purchase_amount):
 	query = ("SELECT balance, maxCredit"
-		"FROM Accountl"
+		"FROM Account"
 		"WHERE customerID = %(id)s")
 	csr = cnx.cursor()
 	csr.execute(query, {"id":login_customer_id})
