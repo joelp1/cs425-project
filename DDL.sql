@@ -76,10 +76,13 @@ CREATE TABLE Customer_Order(
    orderID			INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
    quantity			INT,
    trackingNumber	NUMERIC(22),
+   sources       VARCHAR(150),
+   addressID      INT,
    orderDate		DATE,
    shipDate			DATE,
    customerID		INT,
    shipperID		INT,
+   FOREIGN KEY (addressID) REFERENCES Address(addressID),
    FOREIGN KEY (customerID) REFERENCES Customer(customerID),
    FOREIGN KEY (shipperID) REFERENCES Shipper(shipperID)
 );
@@ -235,3 +238,49 @@ CREATE TABLE Store_Product(
    PRIMARY KEY (storeID, productID, SKU)
 );          
 
+DELIMITER $$
+CREATE PROCEDURE reduceStock(
+   IN product VARCHAR(15),
+   IN quantity INT,
+   OUT warehouse_mapping VARCHAR(150))
+BEGIN
+   DECLARE stock INT;
+   DECLARE available INT DEFAULT 0;
+   DECLARE warehouse VARCHAR(15);
+   DECLARE leftOver INT DEFAULT 0;
+   SET warehouse_mapping = '';
+   SELECT stockID
+   INTO stock
+   FROM Product
+   WHERE productID = product;
+   test_loop: LOOP
+      IF (quantity = 0) THEN
+         LEAVE test_loop;
+      END IF;
+      SELECT warehouseID, quantityAvailable
+      INTO warehouse, available
+      FROM Stock
+      WHERE stockID = stock
+      HAVING quantityAvailable = MAX(quantityAvailable);
+      IF (available >= quantity) THEN
+         SET leftOver = quantity - available;
+         UPDATE Stock
+         SET quantityAvailable = leftOver
+         WHERE warehouseID = warehouse
+         AND stockID = stock;
+         SET warehouse_mapping = CONCAT(warehouse, ':', quantity, ',', warehouse_mapping);
+         LEAVE test_loop;
+      END IF;
+      IF (available < quantity) THEN
+         SET leftOver = 0;
+         SET quantity = quantity - available;
+         UPDATE Stock
+         SET quantityAvailable = leftOver
+         WHERE warehouseID = warehouse
+         AND stockID = stock;
+         SET warehouse_mapping = CONCAT(warehouse, ':', available, ',', warehouse_mapping);
+      END IF;
+   END LOOP;
+END$$
+
+DELIMITER ;
