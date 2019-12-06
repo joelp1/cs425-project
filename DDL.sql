@@ -78,10 +78,13 @@ CREATE TABLE Customer_Order(
    trackingNumber	NUMERIC(22),
    orderDate		DATE,
    shipDate			DATE,
+   sources          VARCHAR(150),
    customerID		INT,
    shipperID		INT,
+   addressID        INT,
    FOREIGN KEY (customerID) REFERENCES Customer(customerID),
-   FOREIGN KEY (shipperID) REFERENCES Shipper(shipperID)
+   FOREIGN KEY (shipperID) REFERENCES Shipper(shipperID),
+   FOREIGN KEY (addressID) REFERENCES Address(addressID)
 );
 
 CREATE TABLE Order_Feedback(
@@ -234,4 +237,3 @@ CREATE TABLE Store_Product(
    sellingPrice		NUMERIC(10,2),
    PRIMARY KEY (storeID, productID, SKU)
 );          
-
