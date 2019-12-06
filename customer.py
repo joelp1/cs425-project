@@ -296,7 +296,7 @@ def purchase_with_store_credit(product_id, quantity, addressID):
 	today = datetime.date.today()
 	transaction = (
 		"START TRANSACTION;"
-		"CALL reduceStock( %()s, %()s, @sources)"
+		"CALL reduceStock( %(product_id)s, %(quantity)s, @sources)"
 		"SELECT @orderNumber:=MAX(orderID)+1"
 		"FROM Customer_Order;"
 		"INSERT INTO Customer_Order(orderID, quantity, orderDate, customerID, addressID, sources)"
@@ -325,7 +325,7 @@ def purchase_with_credit_card(product_id, quantity, addressID, cc_num):
 	today = datetime.date.today()
 	transaction = (
 		"START TRANSACTION;"
-		"CALL reduceStock( %()s, %()s, @sources)"
+		"CALL reduceStock( %(product_id)s, %(quantity)s, @sources)"
 		"SELECT @orderNumber:=MAX(orderNUmber)+1"
 		"FROM Customer_Order;"
 		"INSERT INTO Customer_Order(orderID, quantity, orderDate, customerID, addressID, sources)"
