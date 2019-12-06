@@ -278,6 +278,18 @@ def qualify_purchase_available_stock(product_id, wanted_quantity):
 	csr.close()
 	return has_enough_quantity
 
+def get_addresses():
+	get_addrs = ("SELECT addressID, aNumber, street, zipCode"
+		"FROM Customer_Address"
+		"NATURAL JOIN Address"
+		"WHERE customerID = %s")
+	csr = cnx.cursor()
+	csr.execute(get_addrs, (login_customer_id))
+	addresses = []
+	for address in csr:
+		addresses.append(address)
+	csr.close()
+	return addresses
 
 def purchase_with_store_credit(product_id, quantity, addressID):
 	price = price_check(product_id, quantity)
