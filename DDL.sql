@@ -76,8 +76,6 @@ CREATE TABLE Customer_Order(
    orderID			INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
    quantity			INT,
    trackingNumber	NUMERIC(22),
-   sources       VARCHAR(150),
-   addressID      INT,
    orderDate		DATE,
    shipDate			DATE,
    sources          VARCHAR(150),
@@ -240,54 +238,6 @@ CREATE TABLE Store_Product(
    PRIMARY KEY (storeID, productID, SKU)
 );          
 
-<<<<<<< HEAD
-DELIMITER $$
-CREATE PROCEDURE reduceStock(
-   IN product VARCHAR(15),
-   IN quantity INT,
-   OUT warehouse_mapping VARCHAR(150))
-BEGIN
-   DECLARE stock INT;
-   DECLARE available INT DEFAULT 0;
-   DECLARE warehouse VARCHAR(15);
-   DECLARE leftOver INT DEFAULT 0;
-   SET warehouse_mapping = '';
-   SELECT stockID
-   INTO stock
-   FROM Product
-   WHERE productID = product;
-   test_loop: LOOP
-      IF (quantity = 0) THEN
-         LEAVE test_loop;
-      END IF;
-      SELECT warehouseID, quantityAvailable
-      INTO warehouse, available
-      FROM Stock
-      WHERE stockID = stock
-      HAVING quantityAvailable = MAX(quantityAvailable);
-      IF (available >= quantity) THEN
-         SET leftOver = quantity - available;
-         UPDATE Stock
-         SET quantityAvailable = leftOver
-         WHERE warehouseID = warehouse
-         AND stockID = stock;
-         SET warehouse_mapping = CONCAT(warehouse, ':', quantity, ',', warehouse_mapping);
-         LEAVE test_loop;
-      END IF;
-      IF (available < quantity) THEN
-         SET leftOver = 0;
-         SET quantity = quantity - available;
-         UPDATE Stock
-         SET quantityAvailable = leftOver
-         WHERE warehouseID = warehouse
-         AND stockID = stock;
-         SET warehouse_mapping = CONCAT(warehouse, ':', available, ',', warehouse_mapping);
-      END IF;
-   END LOOP;
-END$$
-
-DELIMITER ;
-=======
 INSERT INTO Customer(firstName, middleName, lastName, birthDate, emailAddress, password, tombstone) VALUES(NULL, NULL, NULL, NULL, NULL, 'unknown', NULL);
 INSERT INTO Customer(firstName, middleName, lastName, birthDate, emailAddress, password, tombstone) VALUES('Carrie', 'M', 'Clarkson', '2017-04-17', 'cclarkson@gmail.com', 'ponta123', NULL);
 INSERT INTO Customer(firstName, middleName, lastName, birthDate, emailAddress, password, tombstone) VALUES('Eddie', 'K', 'Bright', '1976-05-14', 'ebright@gmail.com', 'effect1910', NULL);
@@ -360,7 +310,7 @@ INSERT INTO Category VALUES(4, 'Computer Parts', NULL);
 
 INSERT INTO Product VALUES('A98DB973', 'B07TD96LY2', 'Sony WF-1000XM3 Noise Cancelling Earbuds', 'Freedom perfected in a truly wireless design with industry leading noise canceling powered by Sony’s proprietary HD Noise Canceling Processor QN1e. Form meets function with up to 24 total hours of battery life with quick charging touchpad controls premium sound quality and smart features like Wearing Detection and Quick Attention Mode.', '2019-07-01', 250.00, '5.7x4.7x2.5in', '3.53 ounces', 'Black', 1, '2 Years', 0, 2, 1, 1);
 INSERT INTO Product VALUES('30S70U3A', 'B07HB4QHC3', 'HP Deskjet 2622', 'Easy mobile printing: Start printing and get connected quickly with easy setup from your smartphone, tablet, or PC. Connect your smartphone or tablet directly to your printer?and easily print without accessing a network. Manage printing tasks and scan on the go with the free HP All-in-One Printer Remote mobile app. Affordable at-home printing: Full of value?print up to twice as many pages with Original HP high-yield ink cartridges. Get high-quality prints?time after time?with an all-in-one designed and built to be reliable. Everything you need?right away: Take charge of your tasks and finish in less time with the easy-to-use 2. 2-inch (5. 5 cm) display. Quickly copy, scan, and fax multipage documents with the 35-page automatic document feeder. Access coloring pages, recipes, coupons, and more with free HP Printables?delivered on your schedule. Designed to fit your life: Save your space with a compact all-in-one designed to fit on your desk, on a shelf, or anywhere you need it. Print in any room you choose?without causing disruptions. Optional quiet mode helps keep noise to a minimum. COMPATIBLE OPERATING SYSTEMS - Windows 10, Windows 8.1, Windows 8, Windows 7; OS X v10.8 Mountain Lion, OS X v10.9 Mavericks, OS X v10.10 Yosemite.', '2015-08-14', 39.89, '14.33x17.72x8.54in', '12.37 lbs', 'White', 1, '1 Year', 0, 3, 3, 3);
-INSERT INTO Product VALUES('MZDQMF17 ', 'B07211W6X2', 'MacBook Air', 'The most loved Mac is about to make you fall in love all over again. Available in silver, space gray, and gold, the new thinner and lighter MacBook Air features a brilliant Retina display with True Tone technology, Touch ID, the latest-generation keyboard, and a Force Touch trackpad. The iconic wedge is created from 100 percent recycled aluminum, making it the greenest Mac ever.1 And with all-day battery life, MacBook Air is your perfectly portable, do-it-all notebook.', '2018-12-14', 999.00, '0.68x12.8x8.94in', '2.96 lbs', 'Space Grey', 1, '1 Year', 0, 1, 2, 2);
+INSERT INTO Product VALUES('MZDQMF17', 'B07211W6X2', 'MacBook Air', 'The most loved Mac is about to make you fall in love all over again. Available in silver, space gray, and gold, the new thinner and lighter MacBook Air features a brilliant Retina display with True Tone technology, Touch ID, the latest-generation keyboard, and a Force Touch trackpad. The iconic wedge is created from 100 percent recycled aluminum, making it the greenest Mac ever.1 And with all-day battery life, MacBook Air is your perfectly portable, do-it-all notebook.', '2018-12-14', 999.00, '0.68x12.8x8.94in', '2.96 lbs', 'Space Grey', 1, '1 Year', 0, 1, 2, 2);
 INSERT INTO Product VALUES('T4793KVQ', 'B07598VZR8', 'Intel Core i7-8700K', 'Outstanding gaming experiences extend beyond personal gameplay to your entire gaming community. Share those experiences by live-streaming or recording, editing, and posting your epic highlights.', '2017-10-05', 373.99, '4x2x4.6in', '2.88 ounces', NULL, 1, '1 Year', 0, 4, 4, 4);
 INSERT INTO Product VALUES('0A1RAQP8','B07STGGQ18', 'AMD Ryzen 5 3600', 'AMD CPProductU 100 100000031box Ryzen 5 3600 6C 12T 4200MHz 36MB 65W AM4 Wraith Stealth', '2019-07-01',  185.99, '1.57x1.57x0.24in', '1.6 ounces', NULL, 1, '2 Years', 0, 5, 4, 5);
 
@@ -403,4 +353,53 @@ INSERT INTO Review VALUES(4564, 1, 'Charged me $700 to fix my laptop under warra
 INSERT INTO Restock_Order VALUES(1, 1500, 'Waiting for shipment', 281250, 1, 1);
 
 INSERT INTO Product_Restock VALUES('A98DB973', 'B07TD96LY2', 1);
->>>>>>> dc0127b26b4add281839c45996b49740382978ca
+
+/* Function that modifies the stock of a user specified product*/
+DELIMITER $$
+CREATE PROCEDURE reduceStock(
+   IN product VARCHAR(15),
+   IN quantity INT, 
+   OUT warehouse_mapping VARCHAR(150))
+BEGIN
+   DECLARE stock INT;
+   DECLARE available INT DEFAULT 0;
+   DECLARE warehouse VARCHAR(15);
+   DECLARE leftOver INT DEFAULT 0;
+   SET warehouse_mapping = '';
+   
+   SELECT stockID
+   INTO stock
+   FROM Product
+   WHERE productID = product;
+   
+   test_loop: LOOP
+      IF (quantity = 0) THEN
+         LEAVE test_loop;
+      END IF;
+      
+      SELECT warehouseID, quantityAvailable
+      INTO warehouse, available
+      FROM Stock
+      WHERE stockID = stock
+      HAVING quantityAvailable = MAX(quantityAvailable);
+      
+      IF (available >= quantity) THEN
+         SET leftOver = available - quantity;
+         UPDATE Stock
+         SET quantityAvailable = leftOver
+         WHERE warehouseID = warehouse
+         AND stockID = stock;
+         SET warehouse_mapping = CONCAT(warehouse, ':', quantity, ',', warehouse_mapping);
+         LEAVE test_loop;
+      END IF;
+      IF (available < quantity) THEN
+         SET leftOver = 0;
+         SET quantity = quantity - available;
+         UPDATE Stock
+         SET quantityAvailable = leftOver
+         WHERE warehouseID = warehouse
+         AND stockID = stock;
+         SET warehouse_mapping = CONCAT(warehouse, ':', available, ',', warehouse_mapping);
+      END IF;
+   END LOOP;
+END$$
