@@ -326,7 +326,7 @@ def purchase_with_credit_card(product_id, quantity, addressID, cc_num):
 	transaction = (
 		"START TRANSACTION;"
 		"CALL reduceStock( %(product_id)s, %(quantity)s, @sources)"
-		"SELECT @orderNumber:=MAX(orderNUmber)+1"
+		"SELECT @orderNumber:=MAX(orderID)+1"
 		"FROM Customer_Order;"
 		"INSERT INTO Customer_Order(orderID, quantity, orderDate, customerID, addressID, sources)"
 		"VALUES( @orderNumber, %(quantity)s, %(order_date)s, %(customer_id)s, %(address_id)s, @sources);"
