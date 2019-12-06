@@ -251,7 +251,7 @@ def price_check(product_id, quantity):
 
 def credit_check(purchase_amount):
 	query = ("SELECT balance, maxCredit"
-		"FROM Accountl"
+		"FROM Account"
 		"WHERE customerID = %(id)s")
 	csr = cnx.cursor()
 	csr.execute(query, {"id":login_customer_id})
