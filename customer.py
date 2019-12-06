@@ -496,6 +496,51 @@ def viewCart():
 	elif choice == "Checkout":
 		checkout()
 
+def editCart():
+	msg = "Click on an item you want to edit."
+	title = "Edit Cart"
+	items = []
+
+	if len(cart) > 0:
+		for (key, val) in cart.items():
+			csr = cnx.cursor()
+			csr.execute("SELECT productID, name, MSRP FROM Product WHERE productID = %(pid)s",{"pid":key})
+			for (p,n,m) in csr:
+				temp = str(p)+" | "+n+" | "+str(m)+" | "+str(val)+"\n\n"
+				items.append(temp)
+	else:
+		msg = "You have no items in your cart."
+		shop()
+
+	choice = g.choicebox(msg,title,items)
+
+	choice = choice.split(" | ")[0]
+	edit_in_cart(choice)
+
+def edit_in_cart(pid):
+	msg = ""
+	title = pid
+
+	csr = cnx.cursor()
+	csr.execute("SELECT name, SKU, description, MSRP, quantityAvailable FROM Product NATURAL JOIN Stock WHERE productID = %(pid)s", {"pid":pid})
+	for (n,s,d,m,q) in csr:
+		msg += n +"\n"
+		msg += "SKU: " + str(s) + "\n"
+		msg += "Description:\n"+d+"\n"
+		msg += "MSRP: "+str(m)+"\n"
+		msg += "Units Available: "+str(q)
+	csr.close()
+
+	choice = g.buttonbox(msg,title,("Remove from cart", "Change Quantity", "Go Back"))
+	if choice == "Change Quantity":
+		units = g.integerbox("How many units do you want instead?", "Change Quantity")
+		cart[pid] = units
+		if units == 0:
+			del cart[pid]
+	elif choice == "Remove from cart":
+		del cart[pid]
+	viewCart()
+
 def generateAccountManagementDisplay():
 	csr = cnx.cursor()
 
