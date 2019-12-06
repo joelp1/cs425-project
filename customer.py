@@ -499,7 +499,7 @@ def show_product(pid):
 	browse()
 
 def viewCart():
-	msg = "Product Name | MSRP | Quantity"
+	msg = "Product Name | MSRP | Quantity\n\n"
 	title = "Cart"
 
 	if len(cart) > 0:
