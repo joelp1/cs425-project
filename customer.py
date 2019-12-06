@@ -8,6 +8,7 @@ cnx = mysql.connector.connect(user='admin', password='1Sw9#Aj119&q',
 
 not_logged_in_id = 0
 login_customer_id = not_logged_in_id
+cart = {}
 
 def login(email, given_password):
 	success = False
@@ -362,7 +363,6 @@ def mainMenu():
 
 	elif input == "Guest":
 		login_cust_id = 0
-		display()
 		menu()
 
 	elif input == "Create An Account":
@@ -419,6 +419,82 @@ def menu():
 		else:
 			g.msgbox("You are not logged in. Please select another option.")
 			menu()
+
+def shop():
+	msg = "Welcome to OSJPNT Electronics!"
+	title = "Shopping"
+	options = ("Browse", "View Cart", "Go Back")
+	input = g.buttonbox(msg,title,options)
+
+	if input == "Go Back":
+		menu()
+	elif input == "Browse":
+		browse()
+	else:
+		viewCart()
+
+def browse():
+	msg = "Click on an item you are interested in.\n Product ID | Item | MSRP"
+	title = "Browse"
+	choices = []
+	csr = cnx.cursor()
+	csr.execute("SELECT productID, name, MSRP FROM (Product NATURAL JOIN Stock) WHERE quantityAvailable > 0")
+	for (prod_id, name, MSRP) in csr:
+		temp = str(prod_id) + " | " + name + " | " + str(MSRP)
+		choices.append(temp)
+	csr.close()
+	choice = g.choicebox(msg, title, choices)
+
+	if choice == None:
+		shop()
+
+	pid = choice.split(" | ")[0]
+	show_product(pid)
+
+def show_product(pid):
+	msg = ""
+	title = pid
+
+	csr = cnx.cursor()
+	csr.execute("SELECT name, SKU, description, MSRP, quantityAvailable FROM Product NATURAL JOIN Stock WHERE productID = %(pid)s", {"pid":pid})
+	for (n,s,d,m,q) in csr:
+		msg += n +"\n"
+		msg += "SKU: " + str(s) + "\n"
+		msg += "Description:\n"+d+"\n"
+		msg += "MSRP: "+str(m)+"\n"
+		msg += "Units Available: "+str(q)
+	csr.close()
+
+	choice = g.buttonbox(msg,title,("Add To Cart", "Go Back"))
+	if choice == "Add To Cart":
+		units = g.integerbox("How many units do you want to add to your cart?", "Add To Cart")
+		if pid in cart.keys():
+			cart[pid] += units
+		else:
+			cart[pid] = units
+	browse()
+
+def viewCart():
+	msg = "Product Name | MSRP | Quantity"
+	title = "Cart"
+
+	if len(cart) > 0:
+		for (key, val) in cart.items():
+			csr = cnx.cursor()
+			csr.execute("SELECT name, MSRP FROM Product WHERE productID = %(pid)s",{"pid":key})
+			for (n,m) in csr:
+				msg += n+" | "+str(m)+" | "+str(val)+"\n\n"
+	else:
+		msg = "You have no items in your cart."
+
+	choice = g.buttonbox(msg,title,("Checkout", "Edit Cart", "Keep Browsing"))
+
+	if choice == "Keep Browsing":
+		browse()
+	elif choice == "Edit Cart":
+		editCart()
+	elif choice == "Checkout":
+		checkout()
 
 def generateAccountManagementDisplay():
 	csr = cnx.cursor()
